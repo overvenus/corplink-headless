@@ -237,6 +237,7 @@ func (s *loginState) Execute(ctx context.Context, cli State) error {
 			success, err1 = s.checkLoginToken(ctx, cli, token)
 			if success {
 				log.Printf("login success, company code: %s", cli.GetCompanyCode())
+				fmt.Printf("login success, company code: %s\n", cli.GetCompanyCode())
 				return nil
 			}
 			time.Sleep(time.Second)

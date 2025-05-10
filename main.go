@@ -2,8 +2,10 @@ package main
 
 import (
 	"context"
+	"errors"
 	"flag"
 	"log"
+	"os"
 
 	"github.com/overvenus/corplink-headless/pkg/headless"
 )
@@ -16,7 +18,12 @@ func main() {
 	flag.Parse()
 	err := func() error {
 		if *companyCode == "" {
-			log.Println("company-code is not be empty")
+			// Get from env
+			code := os.Getenv("COMPANY_CODE")
+			if code == "" {
+				return errors.New("company-code must not be empty")
+			}
+			*companyCode = code
 		}
 		token, err := headless.NewToken(*rpcConf)
 		if err != nil {
