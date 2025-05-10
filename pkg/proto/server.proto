@@ -1,0 +1,652 @@
+syntax = "proto3";
+
+package server;
+
+option go_package = "./proto";
+
+message EmptyRequest {
+}
+
+message CodeResponse {
+  int32 code = 1;
+
+  string message = 3;
+}
+
+message VpnListResponse {
+  int32 code = 1;
+
+  string message = 3;
+
+  repeated VpnItemInfo splitList = 4;
+
+  repeated VpnItemInfo fullList = 5;
+}
+
+message VpnItemInfo {
+  int32 id = 1;
+
+  string name = 2;
+
+  int32 delay = 3;
+
+  string icon = 4;
+
+  string displayName = 5;
+
+  int32 mode = 6;
+}
+
+message VpnStatusResponse {
+  int32 code = 1;
+
+  string message = 3;
+
+  VpnStatusInfo data = 4;
+}
+
+message VpnStatusInfo {
+  VpnStatus status = 1;
+
+  VpnMode mode = 2;
+
+  string upSpeed = 3;
+
+  string downSpeed = 4;
+}
+
+message ConnectVpnRequest {
+  int32 server = 1;
+
+  VpnMode mode = 2;
+
+  string otp = 3;
+
+  string zone = 4;
+}
+
+message ChangeVpnModeRequest {
+  VpnMode mode = 1;
+}
+
+message HttpRequest {
+  string url = 1;
+
+  string method = 2;
+
+  string data = 4;
+}
+
+message HttpResponse {
+  int32 code = 1;
+
+  string message = 3;
+
+  string data = 4;
+}
+
+message SetupResponse {
+  int32 code = 1;
+
+  string message = 3;
+
+  SetupInfo data = 4;
+}
+
+message SetupInfo {
+  string setting = 1;
+
+  AppInfo app = 8;
+
+  string deviceId = 9;
+
+  SystemInfo sys = 10;
+}
+
+message SystemInfo {
+  string version = 1;
+
+  string hostName = 3;
+
+  string brand = 4;
+
+  string model = 5;
+}
+
+message AppInfo {
+  string version = 1;
+}
+
+message SecurityItemInfo {
+  string title = 1;
+
+  string type = 2;
+
+  RiskLevel level = 3;
+
+  string message = 4;
+
+  string link = 5;
+
+  bool repairable = 6;
+
+  bool need_manual = 7;
+}
+
+message SecurityResponse {
+  int32 code = 1;
+
+  string message = 3;
+
+  repeated SecurityItemInfo data = 4;
+}
+
+message SecurityFixRequest {
+  string type = 2;
+}
+
+message DiagnoseRequest {
+  string url = 2;
+}
+
+message DiagnoseItemInfo {
+  string title = 1;
+
+  bool success = 2;
+
+  string message = 3;
+}
+
+message FeedbackRequest {
+  string message = 1;
+
+  string type = 2;
+
+  string logDir = 3;
+}
+
+message LanguageRequest {
+  string lang = 1;
+}
+
+message SetDomainRequest {
+  string domain = 1;
+}
+
+message CompanyInfoRequest {
+  string code = 1;
+
+  string name = 2;
+
+  string domain = 3;
+
+  bool enableSelfSigned = 4;
+
+  string selfSignedCert = 5;
+
+  bool enablePublicKey = 6;
+
+  string publicKey = 7;
+}
+
+message NetworkInfoResponse {
+  int32 code = 1;
+
+  NetworkInfo data = 4;
+}
+
+message CookieRequest {
+  string name = 1;
+
+  string value = 2;
+
+  string path = 3;
+
+  string domain = 4;
+
+  int64 expires = 5;
+
+  int32 maxAge = 6;
+
+  bool secure = 7;
+
+  bool httpOnly = 8;
+
+  int32 SameSite = 9;
+}
+
+message SetCookiesRequest {
+  repeated CookieRequest cookies = 1;
+}
+
+message NetworkInfo {
+  int32 status = 1;
+
+  string ip = 2;
+
+  string dns = 3;
+}
+
+message SoftwareInfo {
+  string publisher = 1;
+
+  string software_id = 2;
+
+  string software_name = 3;
+
+  string version = 4;
+
+  RiskLevel level = 5;
+}
+
+message SoftwareAlarmData {
+  repeated SoftwareInfo required_list = 1;
+
+  repeated SoftwareInfo forbidden_list = 2;
+}
+
+message SoftwareAlarmResponse {
+  int32 code = 1;
+
+  string message = 2;
+
+  SoftwareAlarmData data = 3;
+}
+
+message WiFiStatusData {
+  bool connected = 1;
+
+  string ssid = 2;
+
+  string bssid = 3;
+
+  string auth = 4;
+
+  int32 channel = 5;
+}
+
+message WiFiStatusResponse {
+  int32 code = 1;
+
+  WiFiStatusData data = 3;
+}
+
+message WiFiConnectRequest {
+  string ssid = 1;
+
+  string type = 2;
+
+  string username = 3;
+
+  string password = 4;
+
+  bool isHiddenPassword = 5;
+
+  int32 netAccessType = 6;
+}
+
+message WiFiDisconnectRequest {
+  string ssid = 2;
+}
+
+message ProcessInfo {
+  string process_name = 1;
+
+  string sign = 2;
+
+  RiskLevel level = 3;
+}
+
+message ProcessAlarmData {
+  repeated ProcessInfo required_list = 1;
+
+  repeated ProcessInfo forbidden_list = 2;
+}
+
+message ProcessAlarmResponse {
+  int32 code = 1;
+
+  string message = 2;
+
+  ProcessAlarmData data = 3;
+}
+
+message ConfigWiredRequest {
+  string username = 3;
+
+  string password = 4;
+
+  bool isHiddenPassword = 5;
+
+  int32 netAccessType = 6;
+
+  repeated string trustedServerNames = 7;
+}
+
+message GetNotificationRequest {
+  string uuid = 1;
+}
+
+message NotificationResponse {
+  int32 code = 1;
+
+  NotificationResponseData data = 3;
+}
+
+message NotificationResponseData {
+  string payload = 1;
+}
+
+message SecurityModuleResponse {
+  int32 code = 1;
+
+  string message = 2;
+
+  SecurityModuleInfo data = 3;
+}
+
+message SecurityModuleInfo {
+  bool enableSecurity = 1;
+
+  bool enableSoftware = 2;
+
+  bool enableProcess = 3;
+}
+
+message DeviceRuntimeStats {
+  float cpuPercent = 1;
+
+  float memPercent = 2;
+}
+
+message DeviceInfoResponse {
+  int32 code = 1;
+
+  string message = 3;
+
+  DeviceInfo data = 4;
+}
+
+message DeviceInfo {
+  string osVersion = 1;
+
+  repeated InterfaceInfo interfaces = 2;
+
+  repeated RouteInfo routes = 3;
+
+  VPNConnectionInfo vpn = 4;
+}
+
+message InterfaceInfo {
+  string name = 1;
+
+  int32 type = 2;
+
+  int32 status = 3;
+
+  repeated string ipv4 = 4;
+
+  repeated string ipv6 = 5;
+
+  string mac = 6;
+
+  string ssid = 7;
+
+  int32 signal = 8;
+
+  string auth = 9;
+
+  string gateway = 10;
+
+  repeated string dns = 11;
+
+  bool dhcp = 12;
+}
+
+message RouteInfo {
+  string destination = 1;
+
+  string netmask = 2;
+
+  string gateway = 3;
+
+  string interface = 4;
+}
+
+message VPNConnectionInfo {
+  VpnStatus status = 1;
+
+  string serverName = 2;
+
+  string ip = 3;
+
+  repeated string dns = 4;
+}
+
+message SetDNSRequest {
+  int32 type = 1;
+
+  string ip = 2;
+}
+
+message DNSRecommendResponse {
+  int32 code = 1;
+
+  string message = 3;
+
+  DNSRecommendInfo data = 4;
+}
+
+message DNSRecommendInfo {
+  bool enable = 1;
+
+  repeated DNSRecommendItem items = 2;
+}
+
+message DNSRecommendItem {
+  string name = 1;
+
+  string ip = 2;
+
+  int32 delay = 3;
+
+  repeated DNSWebsiteDelayItem websites = 4;
+}
+
+message DNSWebsiteDelayItem {
+  string name = 1;
+
+  int32 delay = 3;
+}
+
+message InstallSoftwareRequest {
+  string packageKey = 1;
+
+  string packagePath = 2;
+
+  string bundleId = 3;
+
+  string publisher = 4;
+
+  string softwareName = 5;
+
+  string version = 6;
+
+  InstallCmd silentInstallArg = 7;
+
+  InstallCmd installDirArg = 8;
+
+  string installDir = 9;
+}
+
+message InstallCmd {
+  string arg = 1;
+
+  int32 index = 2;
+}
+
+message GetInstallTaskInfoRequest {
+  string packageKey = 1;
+
+  string version = 2;
+
+  string bundleId = 3;
+
+  string publisher = 4;
+
+  string softwareName = 5;
+
+  bool enableInstallCheck = 6;
+}
+
+message InstallTaskInfoResponse {
+  InstallStatus status = 3;
+}
+
+message InstalledSoftwareResponse {
+  int32 code = 1;
+
+  string message = 2;
+
+  repeated InstalledSoftwareItemInfo data = 3;
+}
+
+message InstalledSoftwareItemInfo {
+  string name = 1;
+
+  string publisher = 2;
+
+  string bundleId = 3;
+
+  string version = 4;
+
+  int64 installTime = 5;
+}
+
+message CheckWiFiGuideRequest {
+  repeated string ssids = 2;
+}
+
+message WiFiRemoveRequest {
+  repeated string ssids = 2;
+}
+
+enum VpnMode {
+  Split = 0;
+
+  Full = 1;
+}
+
+enum VpnStatus {
+  Disconnected = 0;
+
+  Connecting = 1;
+
+  Connected = 2;
+
+  Disconnecting = 3;
+
+  Reasserting = 4;
+}
+
+enum RiskLevel {
+  Zero = 0;
+
+  Low = 1;
+
+  Medium = 2;
+
+  High = 3;
+}
+
+enum InstallStatus {
+  Installing = 0;
+
+  Success = 1;
+
+  Failed = 2;
+
+  Unknown = 3;
+}
+
+service CorpLink {
+  rpc setDomain ( SetDomainRequest ) returns ( CodeResponse );
+
+  rpc setCompanyInfo ( CompanyInfoRequest ) returns ( CodeResponse );
+
+  rpc setCookies ( SetCookiesRequest ) returns ( CodeResponse );
+
+  rpc getVpnStatus ( EmptyRequest ) returns ( VpnStatusResponse );
+
+  rpc getVpnList ( EmptyRequest ) returns ( VpnListResponse );
+
+  rpc connectVpn ( ConnectVpnRequest ) returns ( CodeResponse );
+
+  rpc changeVpnMode ( ChangeVpnModeRequest ) returns ( CodeResponse );
+
+  rpc disconnectVpn ( EmptyRequest ) returns ( CodeResponse );
+
+  rpc getSetupInfo ( EmptyRequest ) returns ( SetupResponse );
+
+  rpc http ( HttpRequest ) returns ( HttpResponse );
+
+  rpc checkSecurityInfo ( EmptyRequest ) returns ( SecurityResponse );
+
+  rpc fixSecurityRisk ( SecurityFixRequest ) returns ( CodeResponse );
+
+  rpc getSecurityInfo ( EmptyRequest ) returns ( SecurityResponse );
+
+  rpc sendFeedback ( FeedbackRequest ) returns ( CodeResponse );
+
+  rpc logout ( EmptyRequest ) returns ( CodeResponse );
+
+  rpc login ( EmptyRequest ) returns ( CodeResponse );
+
+  rpc startNetworkDiagnose ( DiagnoseRequest ) returns ( stream DiagnoseItemInfo );
+
+  rpc setLanguage ( LanguageRequest ) returns ( CodeResponse );
+
+  rpc clientClose ( EmptyRequest ) returns ( CodeResponse );
+
+  rpc getNetworkInfo ( EmptyRequest ) returns ( NetworkInfoResponse );
+
+  rpc getServiceStatus ( EmptyRequest ) returns ( CodeResponse );
+
+  rpc checkSoftwareRisk ( EmptyRequest ) returns ( SoftwareAlarmResponse );
+
+  rpc getSoftwareRisk ( EmptyRequest ) returns ( SoftwareAlarmResponse );
+
+  rpc getWiFiStatus ( EmptyRequest ) returns ( WiFiStatusResponse );
+
+  rpc connectWiFi ( WiFiConnectRequest ) returns ( CodeResponse );
+
+  rpc disconnectWiFi ( WiFiDisconnectRequest ) returns ( CodeResponse );
+
+  rpc checkProcessRisk ( EmptyRequest ) returns ( ProcessAlarmResponse );
+
+  rpc getProcessRisk ( EmptyRequest ) returns ( ProcessAlarmResponse );
+
+  rpc configWiredNetwork ( ConfigWiredRequest ) returns ( CodeResponse );
+
+  rpc getNotification ( GetNotificationRequest ) returns ( NotificationResponse );
+
+  rpc getSecurityModuleInfo ( EmptyRequest ) returns ( SecurityModuleResponse );
+
+  rpc getDeviceRuntimeStats ( EmptyRequest ) returns ( stream DeviceRuntimeStats );
+
+  rpc getDeviceInfo ( EmptyRequest ) returns ( DeviceInfoResponse );
+
+  rpc setDNS ( SetDNSRequest ) returns ( CodeResponse );
+
+  rpc getDNSRecommend ( EmptyRequest ) returns ( DNSRecommendResponse );
+
+  rpc installSoftware ( InstallSoftwareRequest ) returns ( CodeResponse );
+
+  rpc getInstallTaskInfo ( GetInstallTaskInfoRequest ) returns ( stream InstallTaskInfoResponse );
+
+  rpc getInstalledSoftwareInfo ( EmptyRequest ) returns ( InstalledSoftwareResponse );
+
+  rpc checkWiFiGuide ( CheckWiFiGuideRequest ) returns ( CodeResponse );
+
+  rpc removeWiFi ( WiFiRemoveRequest ) returns ( CodeResponse );
+}
