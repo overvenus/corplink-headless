@@ -2,25 +2,29 @@
 #
 # Modified from https://github.com/sleepymole/docker-corplink
 
-if [ -z "$CONTAINER" ]; then
-    echo "CONTAINER is not set, it should be run in a docker container"
+# Keep this script reusable outside docker (for example in a Linux VM on macOS)
+# while preserving the existing docker guardrails.
+if [ -z "${CONTAINER:-}" ] && [ "${CORPLINK_RUNTIME:-}" != "vm" ]; then
+    echo "Neither CONTAINER=1 nor CORPLINK_RUNTIME=vm is set"
     exit 1
 fi
 
 set -ex
 
-apt-get update
-apt-get install -y \
-    supervisor \
-    privoxy \
-    jq \
-    iptables \
-    iproute2 \
-    net-tools \
-    iputils-ping \
-    less \
-    ca-certificates && \
-rm -rf /var/lib/apt/lists/*
+if [ "${SKIP_APT_INSTALL:-0}" != "1" ]; then
+    apt-get update
+    apt-get install -y \
+        supervisor \
+        privoxy \
+        jq \
+        iptables \
+        iproute2 \
+        net-tools \
+        iputils-ping \
+        less \
+        ca-certificates && \
+    rm -rf /var/lib/apt/lists/*
+fi
 
 # corplink-service
 mkdir -p /var/log/corplink/
