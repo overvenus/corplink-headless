@@ -1,5 +1,5 @@
 build:
-	docker build -t overvenus/corplink:latest .
+	docker buildx build --platform linux/amd64,linux/arm64 -t overvenus/corplink:latest .
 
 macos-up:
 	./scripts/macos/corplink-vm.sh up --company-code "$(COMPANY_CODE)"
