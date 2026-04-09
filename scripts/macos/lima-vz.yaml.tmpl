@@ -1,0 +1,36 @@
+# Rendered by scripts/macos/corplink-vm.sh.
+# This VM definition intentionally uses Apple's Virtualization framework
+# through Lima's "vz" driver with an arm64 Linux guest.
+vmType: "vz"
+arch: "aarch64"
+
+images:
+  - location: "https://cloud-images.ubuntu.com/releases/24.04/release/ubuntu-24.04-server-cloudimg-arm64.img"
+    arch: "aarch64"
+
+mountType: "virtiofs"
+cpus: 2
+memory: "4GiB"
+disk: "20GiB"
+
+containerd:
+  system: false
+  user: false
+
+mounts:
+  - location: "__REPO_DIR__"
+    mountPoint: "/mnt/corplink-repo"
+    writable: false
+  - location: "__ASSETS_DIR__"
+    mountPoint: "/mnt/corplink-assets"
+    writable: false
+
+portForwards:
+  - guestIPMustBeZero: true
+    guestPort: 8118
+    hostPort: __HTTP_PORT__
+    proto: tcp
+  - guestIPMustBeZero: true
+    guestPort: 1080
+    hostPort: __SOCKS_PORT__
+    proto: tcp

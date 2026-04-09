@@ -3,6 +3,7 @@ module github.com/overvenus/corplink-headless
 go 1.24.3
 
 require (
+	github.com/armon/go-socks5 v0.0.0-20160902184237-e75332964ef5
 	github.com/skip2/go-qrcode v0.0.0-20200617195104-da1b6568686e
 	google.golang.org/grpc v1.72.0
 	google.golang.org/protobuf v1.36.5
