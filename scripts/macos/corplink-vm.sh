@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 #
 # Corplink headless runtime on macOS (Apple Silicon).
-# This orchestrates an arm64 Linux VM backed by Apple's Virtualization framework
-# via Lima (vmType=vz), then installs the same runtime stack as Dockerfile.
+# This orchestrates an arm64 Ubuntu Minimal VM backed by Apple's Virtualization
+# framework via Lima (vmType=vz), then installs the runtime stack.
 
 set -euo pipefail
 
@@ -62,6 +62,11 @@ check_host_platform() {
 
 escape_sed() {
     printf '%s' "$1" | sed -e 's/[\/&]/\\&/g'
+}
+
+escape_shell_single_quoted() {
+    # Return content safe for embedding inside single quotes in POSIX shell.
+    printf '%s' "$1" | sed "s/'/'\"'\"'/g"
 }
 
 instance_exists() {
@@ -149,6 +154,10 @@ start_vm_if_needed() {
 }
 
 bootstrap_guest_runtime() {
+    if ! limactl shell "${INSTANCE_NAME}" sh -c 'command -v apt-get >/dev/null 2>&1'; then
+        die "VM '${INSTANCE_NAME}' is not Ubuntu-based. Run: $0 destroy --purge-state, then run up again."
+    fi
+
     local attempts=5
     local i
     for i in $(seq 1 "${attempts}"); do
@@ -171,9 +180,14 @@ bootstrap_guest_runtime() {
 configure_company_code() {
     local company_code="$1"
     local escaped_company_code
-    printf -v escaped_company_code '%q' "${company_code}"
+    escaped_company_code="$(escape_shell_single_quoted "${company_code}")"
     limactl shell "${INSTANCE_NAME}" \
-        sudo bash -c "printf 'COMPANY_CODE=%s\n' ${escaped_company_code} >/etc/default/corplink-headless"
+        sudo bash -c "cat > /opt/Corplink/runtime.env <<EOF
+COMPANY_CODE='${escaped_company_code}'
+CONTAINER=1
+CORPLINK_RUNTIME=vm
+EOF
+chmod 0600 /opt/Corplink/runtime.env"
 }
 
 restart_runtime_service() {
@@ -181,6 +195,8 @@ restart_runtime_service() {
     limactl shell "${INSTANCE_NAME}" sudo systemctl restart corplink-headless.service
     limactl shell "${INSTANCE_NAME}" sudo systemctl is-active --quiet corplink-headless.service || {
         limactl shell "${INSTANCE_NAME}" sudo journalctl -u corplink-headless.service --no-pager -n 80
+        limactl shell "${INSTANCE_NAME}" sudo tail -n 80 /var/log/corplink-headless/stderr.log 2>/dev/null || true
+        limactl shell "${INSTANCE_NAME}" sudo tail -n 80 /var/log/corplink/stderr.log 2>/dev/null || true
         die "corplink-headless.service is not active."
     }
 }

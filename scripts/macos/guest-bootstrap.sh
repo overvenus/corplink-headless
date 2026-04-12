@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 #
-# Bootstraps the Linux guest used by macOS hosts.
-# This script mirrors the container runtime stack from Dockerfile:
-# - corplink-service from official arm64 .deb
-# - corplink-headless binary from local source
-# - socks5 + privoxy + supervisor + network fixers
+# Bootstraps the Ubuntu Minimal guest used by macOS hosts.
+# Runtime intent:
+# - Keep the VM lean (minimal base image)
+# - Keep runtime behavior aligned with container setup
+# - Use systemd to supervise the top-level stack entrypoint
 
 set -euo pipefail
 
@@ -43,6 +43,7 @@ install_runtime_dependencies() {
     )
     local missing=()
     local pkg
+
     for pkg in "${packages[@]}"; do
         if ! dpkg -s "${pkg}" >/dev/null 2>&1; then
             missing+=("${pkg}")
@@ -87,21 +88,24 @@ Wants=network-online.target
 
 [Service]
 Type=simple
-Environment=CONTAINER=1
-Environment=CORPLINK_RUNTIME=vm
-EnvironmentFile=-/etc/default/corplink-headless
+EnvironmentFile=-/opt/Corplink/runtime.env
 WorkingDirectory=/opt/Corplink
 ExecStart=/startup.sh
 Restart=always
 RestartSec=5
+KillMode=control-group
 
 [Install]
 WantedBy=multi-user.target
 EOF
 
-    mkdir -p /etc/default
-    touch /etc/default/corplink-headless
-    chmod 0644 /etc/default/corplink-headless
+    # startup.sh sources runtime.env and exports all keys for child processes.
+    cat <<'EOF' >/opt/Corplink/runtime.env
+COMPANY_CODE=''
+CONTAINER=1
+CORPLINK_RUNTIME=vm
+EOF
+    chmod 0600 /opt/Corplink/runtime.env
 }
 
 require_file "${HEADLESS_BIN}"
