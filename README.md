@@ -55,8 +55,9 @@ This command will:
 
 - Build `corplink-headless` and the local `socks5` helper for `linux/arm64`
 - Download the official arm64 Corplink package
-- Start an Ubuntu arm64 VM with Apple Virtualization (`vmType: vz`)
-- Provision the same service stack as the Docker runtime
+- Start an Ubuntu Minimal arm64 VM with Apple Virtualization (`vmType: vz`)
+- Use systemd for lean top-level lifecycle management of the runtime stack
+- Persist `COMPANY_CODE` in VM runtime env so `corplink-headless` always receives it
 
 ### Login and daily operations
 
@@ -78,6 +79,13 @@ After `up`, proxies are exposed on host:
 
 - HTTP: `127.0.0.1:8888`
 - SOCKS5: `127.0.0.1:1088`
+
+If you previously used the Alpine-based VM runtime, recreate once:
+
+```bash
+./scripts/macos/corplink-vm.sh destroy --purge-state
+./scripts/macos/corplink-vm.sh up --company-code your_company
+```
 
 See [`docs/macos-runtime.md`](docs/macos-runtime.md) for design and maintenance details.
 
