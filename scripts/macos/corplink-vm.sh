@@ -69,12 +69,22 @@ escape_shell_single_quoted() {
     printf '%s' "$1" | sed "s/'/'\"'\"'/g"
 }
 
+lima_shell() {
+    # Avoid "cd /Users/...: No such file or directory" noise by forcing
+    # guest working directory to root.
+    if limactl shell --help 2>&1 | grep -q -- '--workdir'; then
+        limactl shell --workdir / "${INSTANCE_NAME}" "$@"
+    else
+        LIMA_WORKDIR=/ limactl shell "${INSTANCE_NAME}" "$@"
+    fi
+}
+
 instance_exists() {
     limactl list --json 2>/dev/null | grep -Fq "\"name\":\"${INSTANCE_NAME}\""
 }
 
 instance_running() {
-    limactl shell "${INSTANCE_NAME}" true >/dev/null 2>&1
+    lima_shell true >/dev/null 2>&1
 }
 
 require_instance_running() {
@@ -154,14 +164,14 @@ start_vm_if_needed() {
 }
 
 bootstrap_guest_runtime() {
-    if ! limactl shell "${INSTANCE_NAME}" sh -c 'command -v apt-get >/dev/null 2>&1'; then
+    if ! lima_shell sh -c 'command -v apt-get >/dev/null 2>&1'; then
         die "VM '${INSTANCE_NAME}' is not Ubuntu-based. Run: $0 destroy --purge-state, then run up again."
     fi
 
     local attempts=5
     local i
     for i in $(seq 1 "${attempts}"); do
-        if limactl shell "${INSTANCE_NAME}" \
+        if lima_shell \
             sudo \
             REPO_MOUNT=/mnt/corplink-repo \
             ASSETS_MOUNT=/mnt/corplink-assets \
@@ -181,7 +191,7 @@ configure_company_code() {
     local company_code="$1"
     local escaped_company_code
     escaped_company_code="$(escape_shell_single_quoted "${company_code}")"
-    limactl shell "${INSTANCE_NAME}" \
+    lima_shell \
         sudo bash -c "cat > /opt/Corplink/runtime.env <<EOF
 COMPANY_CODE='${escaped_company_code}'
 CONTAINER=1
@@ -191,12 +201,12 @@ chmod 0600 /opt/Corplink/runtime.env"
 }
 
 restart_runtime_service() {
-    limactl shell "${INSTANCE_NAME}" sudo systemctl daemon-reload
-    limactl shell "${INSTANCE_NAME}" sudo systemctl restart corplink-headless.service
-    limactl shell "${INSTANCE_NAME}" sudo systemctl is-active --quiet corplink-headless.service || {
-        limactl shell "${INSTANCE_NAME}" sudo journalctl -u corplink-headless.service --no-pager -n 80
-        limactl shell "${INSTANCE_NAME}" sudo tail -n 80 /var/log/corplink-headless/stderr.log 2>/dev/null || true
-        limactl shell "${INSTANCE_NAME}" sudo tail -n 80 /var/log/corplink/stderr.log 2>/dev/null || true
+    lima_shell sudo systemctl daemon-reload
+    lima_shell sudo systemctl restart corplink-headless.service
+    lima_shell sudo systemctl is-active --quiet corplink-headless.service || {
+        lima_shell sudo journalctl -u corplink-headless.service --no-pager -n 80
+        lima_shell sudo tail -n 80 /var/log/corplink-headless/stderr.log 2>/dev/null || true
+        lima_shell sudo tail -n 80 /var/log/corplink/stderr.log 2>/dev/null || true
         die "corplink-headless.service is not active."
     }
 }
@@ -277,9 +287,9 @@ cmd_logs() {
     require_instance_running
 
     if [[ "${follow}" == "1" ]]; then
-        limactl shell "${INSTANCE_NAME}" sudo tail -n "${lines}" -f /var/log/corplink-headless/stdout.log
+        lima_shell sudo tail -n "${lines}" -f /var/log/corplink-headless/stdout.log
     else
-        limactl shell "${INSTANCE_NAME}" sudo tail -n "${lines}" /var/log/corplink-headless/stdout.log
+        lima_shell sudo tail -n "${lines}" /var/log/corplink-headless/stdout.log
     fi
 }
 
@@ -291,13 +301,13 @@ cmd_status() {
     limactl list
     if instance_running; then
         echo
-        limactl shell "${INSTANCE_NAME}" sudo systemctl --no-pager status corplink-headless.service
+        lima_shell sudo systemctl --no-pager status corplink-headless.service
     fi
 }
 
 cmd_shell() {
     require_instance_running
-    limactl shell "${INSTANCE_NAME}"
+    lima_shell
 }
 
 cmd_down() {

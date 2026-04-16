@@ -29,6 +29,25 @@ require_file() {
     fi
 }
 
+ensure_hostname_resolution() {
+    local host_name short_name
+    host_name="$(hostname)"
+    short_name="$(hostname -s)"
+    if awk -v h1="${host_name}" -v h2="${short_name}" '
+        {
+            for (i = 2; i <= NF; i++) {
+                if ($i == h1 || $i == h2) {
+                    found = 1
+                }
+            }
+        }
+        END { exit found ? 0 : 1 }
+    ' /etc/hosts; then
+        return
+    fi
+    echo "127.0.1.1 ${host_name} ${short_name}" >>/etc/hosts
+}
+
 install_runtime_dependencies() {
     local packages=(
         supervisor
@@ -114,6 +133,7 @@ require_file "${CORPLINK_DEB}"
 require_file "${REPO_MOUNT}/scripts/install_service.sh"
 require_file "${REPO_MOUNT}/scripts/startup.sh"
 
+ensure_hostname_resolution
 install_runtime_dependencies
 install_binaries
 configure_services
