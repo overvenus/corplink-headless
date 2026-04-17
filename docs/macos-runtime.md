@@ -20,6 +20,7 @@ Inside the guest, we install and run:
 - `socks5` on guest `1080` (forwarded to host `1088`)
 - `systemd` manages `/startup.sh` as the top-level service lifecycle
 - `supervisord` still manages `corplink-service`, `corplink-headless`, `privoxy`, and helper daemons
+- Guest bootstrap masks `privoxy.service` and `supervisor.service` to avoid lifecycle conflicts with supervisor jobs.
 - DNS/MTU maintenance scripts equivalent to container behavior.
 - Persistent `/opt/Corplink/runtime.env` consumed by `startup.sh` so `COMPANY_CODE` is inherited by `corplink-headless`.
 

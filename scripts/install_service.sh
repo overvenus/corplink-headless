@@ -79,14 +79,20 @@ EOF
 cat <<EOF >/usr/local/bin/fixdns.sh
 #!/bin/bash
 set -x
+tmp_file="/tmp/resolv.conf.corplink"
 while true; do
   sleep 5
-  dns=\$(jq -r '.DNS[0]' /opt/Corplink/vpn.conf  2>/dev/null)
-  [ -z "\$dns" ] && continue
-  grep -q "\$dns" /etc/resolv.conf && continue
-  echo "nameserver \${dns}" >/etc/resolv.conf
-  echo "nameserver 114.114.114.114" >>/etc/resolv.conf
-  echo "nameserver 1.1.1.1" >>/etc/resolv.conf
+  dns=\$(jq -r '.DNS[0] // empty' /opt/Corplink/vpn.conf 2>/dev/null)
+  {
+    if [[ -n "\$dns" && "\$dns" != "114.114.114.114" && "\$dns" != "1.1.1.1" ]]; then
+      echo "nameserver \${dns}"
+    fi
+    # Always keep deterministic fallback DNS entries regardless of Feilian state.
+    echo "nameserver 114.114.114.114"
+    echo "nameserver 1.1.1.1"
+  } >"\${tmp_file}"
+  cmp -s "\${tmp_file}" /etc/resolv.conf && continue
+  cat "\${tmp_file}" >/etc/resolv.conf
 done
 EOF
 chmod +x /usr/local/bin/fixdns.sh

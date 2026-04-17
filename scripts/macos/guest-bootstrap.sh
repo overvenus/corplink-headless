@@ -79,6 +79,19 @@ install_runtime_dependencies() {
     rm -rf /var/lib/apt/lists/*
 }
 
+disable_conflicting_systemd_units() {
+    local units=(
+        privoxy.service
+        supervisor.service
+    )
+    local unit
+    for unit in "${units[@]}"; do
+        # Keep privoxy/supervisord lifecycle under startup.sh + supervisor only.
+        systemctl disable --now "${unit}" >/dev/null 2>&1 || true
+        systemctl mask "${unit}" >/dev/null 2>&1 || true
+    done
+}
+
 install_binaries() {
     mkdir -p /opt/Corplink
     install -m 0755 "${HEADLESS_BIN}" /opt/Corplink/corplink-headless
@@ -135,6 +148,7 @@ require_file "${REPO_MOUNT}/scripts/startup.sh"
 
 ensure_hostname_resolution
 install_runtime_dependencies
+disable_conflicting_systemd_units
 install_binaries
 configure_services
 write_systemd_unit
