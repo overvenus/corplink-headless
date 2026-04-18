@@ -39,53 +39,59 @@ docker exec -it corplink less -rf +F /var/log/corplink-headless/stdout.log
 
 ### Prerequisites
 
-1. Install Lima (`limactl`) and Go:
+1. Install Lima (`limactl`):
 
 ```bash
-brew install lima go
+brew install lima
 ```
 
-2. Start Corplink in one command:
+2. Start Corplink in one command without cloning this repo:
 
 ```bash
-./scripts/macos/corplink-vm.sh up --company-code your_company
+limactl start \
+  --set '.param.COMPANY_CODE="your_company"' \
+  github:overvenus/corplink-headless/lima/corplink-headless
 ```
 
 This command will:
 
-- Build `corplink-headless` and the local `socks5` helper for `linux/arm64`
-- Download the official arm64 Corplink package
 - Start an Ubuntu Minimal arm64 VM with Apple Virtualization (`vmType: vz`)
-- Use systemd for lean top-level lifecycle management of the runtime stack
-- Persist `COMPANY_CODE` in VM runtime env so `corplink-headless` always receives it
+- Download the latest arm64 runtime bundle published from Git tags
+- Download the official arm64 Corplink package
+- Install the same runtime stack as the Docker image inside the guest
+- Expose host proxies on `127.0.0.1:8888` and `127.0.0.1:1088`
+
+Notes:
+
+- The `github:` template scheme requires Lima 2.x.
+- If GitHub API rate limits affect template resolution, set `GH_TOKEN` or `GITHUB_TOKEN` before running `limactl`.
 
 ### Login and daily operations
 
 ```bash
 # Watch QR code + login progress
-./scripts/macos/corplink-vm.sh logs -f
+LIMA_WORKDIR=/ limactl shell corplink-headless sudo less -rf +F /var/log/corplink-headless/stdout.log
 
 # Runtime status
-./scripts/macos/corplink-vm.sh status
+LIMA_WORKDIR=/ limactl shell corplink-headless sudo systemctl --no-pager status corplink-headless.service
 
 # Open shell inside VM
-./scripts/macos/corplink-vm.sh shell
+LIMA_WORKDIR=/ limactl shell corplink-headless
 
 # Stop VM
-./scripts/macos/corplink-vm.sh down
+limactl stop corplink-headless
 ```
 
-After `up`, proxies are exposed on host:
+To remove the VM entirely:
+
+```bash
+limactl delete --force corplink-headless
+```
+
+After startup, proxies are exposed on host:
 
 - HTTP: `127.0.0.1:8888`
 - SOCKS5: `127.0.0.1:1088`
-
-If you previously used the Alpine-based VM runtime, recreate once:
-
-```bash
-./scripts/macos/corplink-vm.sh destroy --purge-state
-./scripts/macos/corplink-vm.sh up --company-code your_company
-```
 
 See [`docs/macos-runtime.md`](docs/macos-runtime.md) for design and maintenance details.
 

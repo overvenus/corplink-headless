@@ -1,0 +1,65 @@
+minimumLimaVersion: 2.0.0
+
+vmType: "vz"
+arch: "aarch64"
+
+images:
+  - location: "https://cloud-images.ubuntu.com/minimal/releases/noble/release/ubuntu-24.04-minimal-cloudimg-arm64.img"
+    arch: "aarch64"
+
+mounts: []
+mountType: "virtiofs"
+
+cpus: 1
+memory: "512MiB"
+disk: "3.5GiB"
+
+containerd:
+  system: false
+  user: false
+
+hostResolver:
+  enabled: true
+
+param:
+  COMPANY_CODE: ""
+
+message: |
+  Corplink headless is installed in the "{{.Name}}" Lima instance.
+  HTTP proxy:  127.0.0.1:8888
+  SOCKS5 proxy: 127.0.0.1:1088
+
+  Login logs:
+    LIMA_WORKDIR=/ limactl shell {{.Name}} sudo less -rf +F /var/log/corplink-headless/stdout.log
+
+  Stop the instance:
+    limactl stop {{.Name}}
+
+portForwards:
+  - guestIPMustBeZero: true
+    guestPort: 8118
+    hostPort: 8888
+    proto: tcp
+  - guestIPMustBeZero: true
+    guestPort: 1080
+    hostPort: 1088
+    proto: tcp
+
+provision:
+  - mode: system
+    file:
+      url: provision-system.sh
+
+probes:
+  - mode: readiness
+    description: corplink runtime stack installed
+    script: |
+      #!/bin/bash
+      set -euo pipefail
+      test -x /opt/Corplink/corplink-headless
+      test -x /opt/Corplink/corplink-service
+      test -x /usr/local/bin/socks5
+      systemctl is-active --quiet corplink-headless.service
+    hint: |
+      The runtime was not installed correctly.
+      Check /var/log/cloud-init-output.log and `journalctl -u corplink-headless.service`.

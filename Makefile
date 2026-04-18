@@ -1,20 +1,24 @@
 build:
 	docker buildx build --platform linux/amd64,linux/arm64 -t overvenus/corplink:latest .
 
+LIMA_TEMPLATE := github:overvenus/corplink-headless/lima/corplink-headless
+LIMA_INSTANCE ?= corplink-headless
+
 macos-up:
-	./scripts/macos/corplink-vm.sh up --company-code "$(COMPANY_CODE)"
+	@[ -n "$(COMPANY_CODE)" ] || (echo "COMPANY_CODE is required" >&2; exit 1)
+	limactl start --name="$(LIMA_INSTANCE)" --set '.param.COMPANY_CODE="$(COMPANY_CODE)"' $(LIMA_TEMPLATE)
 
 macos-logs:
-	./scripts/macos/corplink-vm.sh logs -f
+	LIMA_WORKDIR=/ limactl shell "$(LIMA_INSTANCE)" sudo less -rf +F /var/log/corplink-headless/stdout.log
 
 macos-status:
-	./scripts/macos/corplink-vm.sh status
+	LIMA_WORKDIR=/ limactl shell "$(LIMA_INSTANCE)" sudo systemctl --no-pager status corplink-headless.service
 
 macos-down:
-	./scripts/macos/corplink-vm.sh down
+	limactl stop "$(LIMA_INSTANCE)"
 
 macos-shell:
-	./scripts/macos/corplink-vm.sh shell
+	LIMA_WORKDIR=/ limactl shell "$(LIMA_INSTANCE)"
 
 macos-destroy:
-	./scripts/macos/corplink-vm.sh destroy
+	limactl delete --force "$(LIMA_INSTANCE)"
