@@ -20,9 +20,15 @@ type Client struct {
 	token         Token
 	companyCode   string
 	companyDomain *url.URL
+	vpnServerID   int
+	vpnMode       proto.VpnMode
 }
 
-func NewClient(addr string, companyCode string, token Token, debug bool) (*Client, error) {
+func NewClient(
+	addr string, companyCode string,
+	vpnServerID int, vpnMode proto.VpnMode,
+	token Token, debug bool,
+) (*Client, error) {
 	// create gRPC connection
 	opts := []grpc.DialOption{
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
@@ -40,11 +46,21 @@ func NewClient(addr string, companyCode string, token Token, debug bool) (*Clien
 		CorpLinkClient: cli,
 		token:          token,
 		companyCode:    companyCode,
+		vpnServerID:    vpnServerID,
+		vpnMode:        vpnMode,
 	}, nil
 }
 
 func (c *Client) GetCompanyCode() string {
 	return c.companyCode
+}
+
+func (c *Client) GetVPNServerID() int {
+	return c.vpnServerID
+}
+
+func (c *Client) GetVPNMode() proto.VpnMode {
+	return c.vpnMode
 }
 
 func (c *Client) SetCompanyDomain(companyDomain string) error {
@@ -113,6 +129,8 @@ type State interface {
 	proto.CorpLinkClient
 	GetCompanyCode() string
 	SetCompanyDomain(companyDomain string) error
+	GetVPNServerID() int
+	GetVPNMode() proto.VpnMode
 	Url(path string, queries map[string]string) (string, error)
 }
 
