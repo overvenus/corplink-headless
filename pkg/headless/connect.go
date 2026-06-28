@@ -15,10 +15,19 @@ func Connect() Step {
 	return &connectState{}
 }
 
+func (s *connectState) listVPN(ctx context.Context, cli State) error {
+	resp, err := cli.GetVpnList(ctx, &proto.EmptyRequest{})
+	if err != nil {
+		return fmt.Errorf("failed to connectVPN: %w", err)
+	}
+	log.Printf("VPN list: %s", resp)
+	return nil
+}
+
 func (s *connectState) connectVPN(ctx context.Context, cli State) error {
 	resp, err := cli.ConnectVpn(ctx, &proto.ConnectVpnRequest{
-		Server: -1, // -1 means auto
-		Mode:   proto.VpnMode_Split,
+		Server: int32(cli.GetVPNServerID()), // -1 means auto
+		Mode:   cli.GetVPNMode(),
 	})
 	if err != nil {
 		return fmt.Errorf("failed to connectVPN: %w", err)
@@ -41,6 +50,9 @@ func GetVpnStatus(ctx context.Context, cli State) (bool, error) {
 }
 
 func (s *connectState) Execute(ctx context.Context, cli State) error {
+	if err := s.listVPN(ctx, cli); err != nil {
+		return fmt.Errorf("failed to listVPN: %w", err)
+	}
 	if err := s.connectVPN(ctx, cli); err != nil {
 		return fmt.Errorf("failed to connect: %w", err)
 	}
@@ -48,7 +60,7 @@ func (s *connectState) Execute(ctx context.Context, cli State) error {
 		if connected, err := GetVpnStatus(ctx, cli); err != nil {
 			return fmt.Errorf("failed to get VPN status: %w", err)
 		} else if connected {
-			log.Printf("VPN connected, company code: %s", cli.GetCompanyCode())
+			log.Printf("%s VPN connected, company code: %s", time.Now().Format(time.DateTime), cli.GetCompanyCode())
 			break
 		}
 		time.Sleep(time.Second)
