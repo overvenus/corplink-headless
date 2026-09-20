@@ -10,6 +10,16 @@ limactl start \
   github:overvenus/corplink-headless/lima/corplink-headless
 ```
 
+Optional VPN selection:
+
+```bash
+limactl start \
+  --set '.param.COMPANY_CODE="your_company"' \
+  --set '.param.VPN_SERVER_ID="123"' \
+  --set '.param.VPN_MODE="full"' \
+  github:overvenus/corplink-headless/lima/corplink-headless
+```
+
 For guest shell commands, use `LIMA_WORKDIR=/` so Lima does not try to `cd` into an unmapped host path.
 
 ## Why this design
