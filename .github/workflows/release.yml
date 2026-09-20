@@ -16,6 +16,7 @@ env:
 
 jobs:
   docker-image:
+    if: github.event_name != 'push' || github.ref_name != 'latest'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -65,6 +66,7 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
 
   runtime-bundles:
+    if: github.event_name != 'push' || github.ref_name != 'latest'
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -101,10 +103,24 @@ jobs:
 
   github-release:
     runs-on: ubuntu-latest
-    if: github.event_name == 'push'
+    if: github.event_name == 'push' && github.ref_name != 'latest'
     needs:
       - runtime-bundles
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Detect master release
+        id: master-release
+        run: |
+          if git branch -r --contains "$GITHUB_SHA" | grep -Eq 'origin/master$'; then
+            echo "should_publish_latest=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "should_publish_latest=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Download runtime tarballs
         uses: actions/download-artifact@v4
         with:
@@ -121,6 +137,74 @@ jobs:
         with:
           tag_name: ${{ github.ref_name }}
           generate_release_notes: true
+          overwrite_files: true
+          files: |
+            dist/*.tar.gz
+            dist/corplink-headless-runtime-sha256sum.txt
+
+      - name: Create or update latest tag
+        if: steps.master-release.outputs.should_publish_latest == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            const ref = 'tags/latest';
+            const sha = context.sha;
+
+            try {
+              await github.rest.git.updateRef({
+                owner,
+                repo,
+                ref,
+                sha,
+                force: true,
+              });
+            } catch (error) {
+              if (error.status !== 404) {
+                throw error;
+              }
+
+              await github.rest.git.createRef({
+                owner,
+                repo,
+                ref: `refs/${ref}`,
+                sha,
+              });
+            }
+
+      - name: Delete existing latest release
+        if: steps.master-release.outputs.should_publish_latest == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+
+            try {
+              const { data: release } = await github.rest.repos.getReleaseByTag({
+                owner,
+                repo,
+                tag: 'latest',
+              });
+
+              await github.rest.repos.deleteRelease({
+                owner,
+                repo,
+                release_id: release.id,
+              });
+            } catch (error) {
+              if (error.status !== 404) {
+                throw error;
+              }
+            }
+
+      - name: Publish latest release assets
+        if: steps.master-release.outputs.should_publish_latest == 'true'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: latest
+          name: Latest
+          body: |
+            Latest runtime artifacts from `${{ github.ref_name }}`.
           overwrite_files: true
           files: |
             dist/*.tar.gz
