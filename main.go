@@ -17,7 +17,7 @@ var (
 	rpcConf     = flag.String("rpc-conf", "./rpc.conf", "Path to rpc.conf file")
 	companyCode = flag.String("company-code", "", "Company code for using Corplink")
 	vpnServerID = flag.Int("vpn-server-id", -1, "VPN server ID")
-	vpnMode     = flag.String("vpn-mode", "split", "VPN server mode, split or full")
+	vpnMode     = flag.String("vpn-mode", "", "VPN server mode, split or full")
 	debug       = flag.Bool("debug", false, "Enable debug mode")
 )
 
@@ -35,20 +35,19 @@ func main() {
 		if *vpnServerID == -1 {
 			// Get from env
 			id := os.Getenv("VPN_SERVER_ID")
-			if id == "" {
-				return errors.New("vpn-server-id must not be empty")
-			}
-			var err error
-			*vpnServerID, err = strconv.Atoi(id)
-			if err != nil {
-				return fmt.Errorf("invalid vpn-server-id: %w", err)
+			if id != "" {
+				var err error
+				*vpnServerID, err = strconv.Atoi(id)
+				if err != nil {
+					return fmt.Errorf("invalid vpn-server-id: %w", err)
+				}
 			}
 		}
 		if *vpnMode == "" {
 			// Get from env
 			mode := os.Getenv("VPN_MODE")
 			if mode == "" {
-				return errors.New("vpn-mode must not be empty")
+				mode = "split"
 			}
 			*vpnMode = mode
 		}

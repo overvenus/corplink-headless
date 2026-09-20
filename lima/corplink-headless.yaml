@@ -23,6 +23,8 @@ hostResolver:
 
 param:
   COMPANY_CODE: ""
+  VPN_SERVER_ID: ""
+  VPN_MODE: "split"
 
 message: |
   Corplink headless is installed in the "{{.Name}}" Lima instance.

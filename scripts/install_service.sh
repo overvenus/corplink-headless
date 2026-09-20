@@ -251,11 +251,14 @@ EOF
 write_vm_runtime_files() {
     [ "${CORPLINK_RUNTIME:-}" = "vm" ] || return 0
 
-    local escaped_company_code
+    local escaped_company_code escaped_vpn_mode
     escaped_company_code="$(shell_quote "${COMPANY_CODE:-}")"
+    escaped_vpn_mode="$(shell_quote "${VPN_MODE:-}")"
 
     cat <<EOF >"${RUNTIME_ENV_PATH}"
 COMPANY_CODE='${escaped_company_code}'
+VPN_SERVER_ID='${VPN_SERVER_ID:-}'
+VPN_MODE='${escaped_vpn_mode}'
 CONTAINER=1
 CORPLINK_RUNTIME=vm
 EOF

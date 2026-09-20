@@ -61,6 +61,16 @@ This command will:
 - Install the same runtime stack as the Docker image inside the guest
 - Expose host proxies on `127.0.0.1:8888` and `127.0.0.1:1088`
 
+Optional VPN selection:
+
+```bash
+limactl start \
+  --set '.param.COMPANY_CODE="your_company"' \
+  --set '.param.VPN_SERVER_ID="123"' \
+  --set '.param.VPN_MODE="full"' \
+  github:overvenus/corplink-headless/lima/corplink-headless
+```
+
 Notes:
 
 - The `github:` template scheme requires Lima 2.x.
