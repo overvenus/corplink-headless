@@ -32,26 +32,6 @@ func main() {
 			}
 			*companyCode = code
 		}
-		if *vpnServerID == -1 {
-			// Get from env
-			id := os.Getenv("VPN_SERVER_ID")
-			if id == "" {
-				return errors.New("vpn-server-id must not be empty")
-			}
-			var err error
-			*vpnServerID, err = strconv.Atoi(id)
-			if err != nil {
-				return fmt.Errorf("invalid vpn-server-id: %w", err)
-			}
-		}
-		if *vpnMode == "" {
-			// Get from env
-			mode := os.Getenv("VPN_MODE")
-			if mode == "" {
-				return errors.New("vpn-mode must not be empty")
-			}
-			*vpnMode = mode
-		}
 		var vpnModePb proto.VpnMode
 		switch *vpnMode {
 		case "split":
