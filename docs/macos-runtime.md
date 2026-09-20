@@ -21,6 +21,24 @@ For guest shell commands, use `LIMA_WORKDIR=/` so Lima does not try to `cd` into
 
 ## Release flow
 
+Before the first Lima start, a published, non-prerelease GitHub release marked
+**Latest** must contain both the arm64 runtime tarball and checksum file below.
+The Feilian client backup release does not contain these runtime assets.
+
+To publish them, merge the provisioning and release workflow changes to the
+default branch, then push a new tag pointing to that commit:
+
+```bash
+git tag <new-release-tag>
+git push origin <new-release-tag>
+```
+
+Wait for the `runtime-bundles` and `github-release` jobs in the `release` workflow
+to succeed, and check that the resulting release is marked **Latest**. You do not
+need to create the release manually: the tag-push workflow creates it and uploads
+the assets. Running `workflow_dispatch` alone only builds artifacts; it skips the
+`github-release` job.
+
 On every pushed Git tag, GitHub Actions now:
 
 - Builds and pushes a multi-arch Docker image for `linux/amd64` and `linux/arm64`.

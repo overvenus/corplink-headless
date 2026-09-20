@@ -45,7 +45,13 @@ docker exec -it corplink less -rf +F /var/log/corplink-headless/stdout.log
 brew install lima
 ```
 
-2. Start Corplink in one command without cloning this repo:
+2. Ensure the repository has a published **Latest** release containing
+   `corplink-headless-runtime-linux-arm64.tar.gz` and
+   `corplink-headless-runtime-sha256sum.txt`. A tag alone or the Feilian client
+   backup prerelease is not enough. Maintainers: see the
+   [release flow](docs/macos-runtime.md#release-flow) to publish these assets.
+
+3. Start Corplink in one command without cloning this repo:
 
 ```bash
 limactl start \
