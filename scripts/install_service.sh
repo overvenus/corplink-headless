@@ -245,6 +245,42 @@ autorestart=true
 stderr_logfile=/var/log/fixsshmtu/stderr.log
 stdout_logfile=/var/log/fixsshmtu/stdout.log
 EOF
+
+    # Ensure the GitHub route uses the VPN interface.
+    # See https://api.github.com/meta
+    cat <<EOF >/usr/local/bin/fixroute.sh
+#!/bin/bash
+set -x
+routes=(
+    185.199.108.0/22
+    192.30.252.0/22
+    140.82.112.0/20
+    143.55.64.0/20
+)
+while true; do
+    sleep 5
+    if [[ -d /sys/class/net/utun ]]; then
+        for route in "\${routes[@]}"; do
+            ip route show "\$route" dev utun | grep -q . && continue
+            ip route add "\$route" dev utun
+        done
+    else
+        for route in "\${routes[@]}"; do
+            ip route del "\$route" dev utun 2>/dev/null || true
+        done
+    fi
+done
+EOF
+    chmod +x /usr/local/bin/fixroute.sh
+    mkdir -p /var/log/fixroute/
+    cat <<EOF >"${SUPERVISOR_CONF_DIR}/fixroute.conf"
+[program:fixroute]
+command=/usr/local/bin/fixroute.sh
+autostart=true
+autorestart=true
+stderr_logfile=/var/log/fixroute/stderr.log
+stdout_logfile=/var/log/fixroute/stdout.log
+EOF
 }
 
 write_vm_runtime_files() {
